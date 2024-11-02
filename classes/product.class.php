@@ -4,7 +4,8 @@
 require_once 'database.php';
 
 // The Product class handles operations related to products in the database.
-class Product {
+class Product
+{
     // These properties represent the columns in the 'product' table.
     public $id = '';            // The ID of the product. Typically used when updating or deleting a product.
     public $code = '';          // The unique code of the product.
@@ -15,12 +16,14 @@ class Product {
     protected $db; // This will hold an instance of the Database class for database operations.
 
     // The constructor method initializes the Product class by creating a new Database object.
-    function __construct() {
+    function __construct()
+    {
         $this->db = new Database(); // Instantiate the Database class.
     }
 
     // The add() method is used to add a new product to the database.
-    function add() {
+    function add()
+    {
         // SQL query to insert a new product into the 'product' table.
         $sql = "INSERT INTO product (code, name, category_id, price) VALUES (:code, :name, :category_id, :price);";
 
@@ -38,12 +41,13 @@ class Product {
     }
 
     // The showAll() method retrieves all products from the database and returns them.
-    function showAll($keyword='', $category='') {
-        // SQL query to select all products, ordered alphabetically by name.
-        // If keyword or category are provided, they are used for filtering the results.
+    function showAll($keyword = '', $category = '')
+    {
         $sql = "SELECT p.*, c.name as category_name, SUM(IF(s.status='in', quantity, 0)) as stock_in, SUM(IF(s.status='out', quantity, 0)) as stock_out FROM product p INNER JOIN category c ON p.category_id = c.id LEFT JOIN stocks s ON p.id = s.product_id WHERE (p.code LIKE CONCAT('%', :keyword, '%') OR p.name LIKE CONCAT('%', :keyword, '%')) AND (c.id LIKE CONCAT('%', :category, '%')) GROUP BY p.id ORDER BY p.name ASC;";
 
-        // Prepare the SQL statement for execution.
+
+        $sql = "SELECT i.*, p.*, c.name as category_name, SUM(IF(s.status='in', quantity, 0)) as stock_in, SUM(IF(s.status='out', quantity, 0)) as stock_out FROM product p INNER JOIN category c ON p.category_id = c.id LEFT JOIN product_image i ON p.id = i.product_id AND i.image_role = 'main' LEFT JOIN stocks s ON p.id = s.product_id WHERE (p.code LIKE CONCAT('%', :keyword, '%') OR p.name LIKE CONCAT('%', :keyword, '%')) AND (c.id LIKE CONCAT('%', :category, '%')) GROUP BY p.id ORDER BY p.name ASC;";
+
         $query = $this->db->connect()->prepare($sql);
 
         // Bind the keyword and category parameters to the SQL query.
@@ -61,7 +65,8 @@ class Product {
     }
 
     // The edit() method is used to update an existing product in the database.
-    function edit() {
+    function edit()
+    {
         // SQL query to update an existing product in the 'product' table.
         $sql = "UPDATE product SET code = :code, name = :name, category_id = :category_id, price = :price WHERE id = :id;";
 
@@ -80,7 +85,8 @@ class Product {
     }
 
     // The fetchRecord() method retrieves a single product record from the database based on its ID.
-    function fetchRecord($recordID) {
+    function fetchRecord($recordID)
+    {
         // SQL query to select a single product based on its ID.
         $sql = "SELECT * FROM product WHERE id = :recordID;";
 
@@ -101,7 +107,8 @@ class Product {
     }
 
     // The delete() method removes a product from the database based on its ID.
-    function delete($recordID) {
+    function delete($recordID)
+    {
         // SQL query to delete a product by its ID.
         $sql = "DELETE FROM product WHERE id = :recordID;";
 
@@ -110,14 +117,15 @@ class Product {
 
         // Bind the recordID parameter to the SQL query.
         $query->bindParam(':recordID', $recordID);
-        
+
         // Execute the query. If successful, return true; otherwise, return false.
         return $query->execute();
     }
 
     // The codeExists() method checks if a product code already exists in the database.
     // It can exclude a specific product ID when performing the check (useful during updates).
-    function codeExists($code, $excludeID = null) {
+    function codeExists($code, $excludeID = null)
+    {
         // SQL query to check if the product code exists.
         $sql = "SELECT COUNT(*) FROM product WHERE code = :code";
 
@@ -145,24 +153,25 @@ class Product {
         return $count > 0;
     }
 
-    public function fetchCategory() {
+    public function fetchCategory()
+    {
         // Define the SQL query to select all columns from the 'category' table,
         // ordering the results by the 'name' column in ascending order.
         $sql = "SELECT * FROM category ORDER BY name ASC;";
-    
+
         // Prepare the SQL statement for execution using a database connection.
         $query = $this->db->connect()->prepare($sql);
-    
+
         // Initialize a variable to hold the fetched data. This will store the results of the query.
         $data = null;
-    
+
         // Execute the prepared SQL query.
         // If the execution is successful, fetch all the results from the query's result set.
         // Use fetchAll() to retrieve all rows as an array of associative arrays.
         if ($query->execute()) {
             $data = $query->fetchAll(PDO::FETCH_ASSOC); // Fetch all rows as an associative array.
         }
-    
+
         // Return the fetched data. This will be an array of categories, where each category
         // is represented as an associative array with column names as keys.
         return $data;
